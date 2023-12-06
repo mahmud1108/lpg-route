@@ -1,0 +1,162 @@
+<?php
+
+namespace Tests\Feature\User;
+
+use App\Models\User;
+use Database\Seeders\UserSeeder;
+use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Foundation\Testing\WithFaker;
+use Illuminate\Http\UploadedFile;
+use Tests\TestCase;
+
+class UserTest extends TestCase
+{
+    /**
+     * A basic feature test example.
+     */
+    public function testUserLoginSuccess()
+    {
+        $this->seed(UserSeeder::class);
+        $this->post('/api/user/login', [
+            'email' => 'test@gmail.com',
+            'password' => 'test'
+        ])->assertStatus(200)
+            ->assertJson([
+                'data' => [
+                    'name' => 'test',
+                    'photo' => 'test',
+                    'email' => 'test@gmail.com',
+                    'phone' => '333333',
+                    'bio' => 'test'
+                ]
+            ]);
+    }
+
+    public function testUserLoginFailed()
+    {
+        $this->seed(UserSeeder::class);
+        $this->post('/api/user/login', [
+            'email' => 'test@gmail.com',
+            'password' => 'salah password'
+        ])->assertStatus(401)
+            ->assertJson([
+                'errors' => [
+                    'message' => [
+                        'email or password wrong'
+                    ]
+                ]
+            ]);
+    }
+
+    public function testUserRegisterSuccess()
+    {
+        $this->post('/api/user/registrasi', [
+            'name' => 'mahmud',
+            'email' => 'mahmud@gmail.com',
+            'password' => 'password',
+            'password_confirmation' => 'password',
+            'phone' => '3323233'
+        ])->assertStatus(201)
+            ->assertJson([
+                'data' => [
+                    'name' => 'mahmud',
+                    'email' => 'mahmud@gmail.com',
+                    'phone' => '3323233'
+                ]
+            ]);
+    }
+
+    public function testUserRegisterFailedEmail()
+    {
+        $this->seed(UserSeeder::class);
+
+        $this->post('/api/user/registrasi', [
+            'name' => 'mahmud',
+            'email' => 'test@gmail.com',
+            'password' => 'password',
+            'password_confirmation' => 'password',
+            'phone' => '3323233'
+        ])->assertStatus(400)
+            ->assertJson([
+                'errors' => [
+                    'email' => [
+                        'The email has already been taken.'
+                    ]
+                ]
+            ]);
+    }
+
+    public function testUpdateSuccess()
+    {
+        $this->seed(UserSeeder::class);
+
+        $user = User::query()->limit(1)->first();
+        $this->put('/api/user/update', [
+            'name' => 'mahmud awaludin',
+            'email' => 'emailbaru@gmail.com',
+            'password' => 'password',
+            'password_confirmation' => 'password',
+            'photo' => UploadedFile::fake()->create('asdfasdf.jpg', 1024),
+            'phone' => '122344'
+        ], [
+            'Authorization' => 'user'
+        ])->assertStatus(200)
+            ->json();
+        $new = User::query()->limit(1)->first();
+
+        self::assertNotEquals($new->name, $user->name);
+        self::assertNotEquals($new->password, $user->password);
+    }
+
+    public function testUpdateFailedValidation()
+    {
+        $this->seed(UserSeeder::class);
+
+        $this->put('/api/user/update', [
+            'email' => 'new@gmail.com',
+            'phone' => '2222',
+            'photo' => UploadedFile::fake()->create('ajdfjadfasdf.pdf', 10000)
+        ], [
+            'Authorization' => 'user'
+        ])->assertStatus(400)
+            ->assertJson([
+                'errors' => [
+                    'email' => [
+                        'The email has already been taken.'
+                    ],
+                    'phone' => [
+                        'The phone has already been taken.'
+                    ],
+                    'photo' => [
+                        'The photo field must be an image.',
+                        'The photo field must be a file of type: jpg, png, jpeg.',
+                        'The photo field must not be greater than 2048 kilobytes.'
+                    ]
+                ]
+            ]);
+    }
+
+    public function testLogoutSuccess()
+    {
+        $this->seed(UserSeeder::class);
+        $this->delete('/api/user/logout', headers: [
+            'Authorization' => 'user'
+        ])->assertStatus(200);
+    }
+
+    public function testLogoutFailed()
+    {
+        $this->seed(UserSeeder::class);
+
+        $this->delete('/api/user/logout', headers: [
+            'Authorization' => 'token salah'
+        ])->assertStatus(401)
+            ->assertJson([
+                'errors' => [
+                    'message' => [
+                        'Unauthorioze'
+                    ]
+                ]
+            ]);
+    }
+}

@@ -4,15 +4,20 @@ namespace App\Http\Controllers\User;
 
 use App\Helper\FileHelper;
 use App\Http\Controllers\Controller;
+use App\Http\Requests\User\UserPasswordResetRequest;
 use App\Http\Requests\User\UserRegisterRequest;
 use App\Http\Requests\User\UserRequest;
 use App\Http\Requests\User\UserUpdateRequest;
 use App\Http\Resources\UserResource;
+use App\Mail\SendMailResetPassword;
+use App\Models\ResetPasswordToken;
 use App\Models\User;
 use Illuminate\Http\Exceptions\HttpResponseException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Str;
+use League\CommonMark\Extension\CommonMark\Parser\Block\HtmlBlockStartParser;
 use Nette\Utils\Random;
 
 class UserController extends Controller
@@ -101,5 +106,73 @@ class UserController extends Controller
         return response()->json([
             'data' => true
         ])->setStatusCode(200);
+    }
+
+    public function reset_password(Request $request)
+    {
+        $request->validate([
+            'email' => ['required', 'email']
+        ]);
+
+        $user = User::where('email', $request->email)->first();
+        if (!$user) {
+            throw new HttpResponseException(response([
+                'errors' => [
+                    'message' => [
+                        'Not found.'
+                    ]
+                ]
+            ], 404));
+        }
+
+        $cek_email = ResetPasswordToken::where('email', $request->email)->count();
+        $random = Hash::make(Random::generate(10, '0-9a-z'));
+        if ($cek_email > 0) {
+            $token = ResetPasswordToken::where('email', $request->email)->first();
+            $token->token = $random;
+            $token->update();
+        } else {
+            $token = new ResetPasswordToken;
+            $token->email = $user->email;
+            $token->token = $random;
+            $token->save();
+        }
+
+        $token = ResetPasswordToken::where('email', $user->email)->first();
+
+        $email = new SendMailResetPassword($user, $token);
+        Mail::to($user->email)->send($email);
+    }
+
+    public function reset_action($token, UserPasswordResetRequest $request)
+    {
+        $cek_token = ResetPasswordToken::where('token', $token)->first();
+        if (!$cek_token) {
+            throw new HttpResponseException(response([
+                'errors' => [
+                    'message' => [
+                        'Not found.'
+                    ]
+                ]
+            ], 404));
+        }
+
+        $user = User::where('email', $cek_token->email)->first();
+        if (!$user) {
+            throw new HttpResponseException(response([
+                'errors' => [
+                    'message' => [
+                        'Not found.'
+                    ]
+                ]
+            ], 404));
+        }
+
+        $data = $request->validated();
+
+        $user->password = Hash::make($data['password']);
+        $user->update();
+
+        return new UserResource($user);
     }
 }

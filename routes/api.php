@@ -2,7 +2,9 @@
 
 use App\Http\Controllers\User\UserController;
 use App\Http\Middleware\UserMiddleware;
+use App\Mail\SendMail;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -18,6 +20,8 @@ use Illuminate\Support\Facades\Route;
 
 Route::post('/user/login', [UserController::class, 'login']);
 Route::post('/user/registrasi', [UserController::class, 'register']);
+Route::post('/user/reset-password', [UserController::class, 'reset_password']);
+Route::post('/user/reset-password/{token}', [UserController::class, 'reset_action'])->name('reset-action');
 
 Route::middleware(UserMiddleware::class)->prefix('user')->group(function () {
     Route::put('/update', [UserController::class, 'update']);

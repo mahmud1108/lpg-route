@@ -64,6 +64,10 @@ return [
             'driver' => 'eloquent',
             'model' => App\Models\User::class,
         ],
+        'reset_password' => [
+            "driver" => 'eloquent',
+            'model' => App\Models\ResetPasswordToken::class
+        ]
 
         // 'users' => [
         //     'driver' => 'database',
@@ -91,8 +95,8 @@ return [
     */
 
     'passwords' => [
-        'users' => [
-            'provider' => 'users',
+        'reset_password' => [
+            'provider' => 'reset_password',
             'table' => 'password_reset_tokens',
             'expire' => 60,
             'throttle' => 60,

@@ -35,5 +35,16 @@ class UserSeeder extends Seeder
             'bio' => 'test',
             'token' => 'user1'
         ]);
+
+        User::create([
+            'user_id' => 3,
+            'name' => 'test',
+            'photo' => 'test',
+            'email' => 'mahmudawaludin17@gmail.com',
+            'password' => Hash::make('test'),
+            'phone' => '3465334',
+            'bio' => 'test',
+            'token' => 'user2'
+        ]);
     }
 }

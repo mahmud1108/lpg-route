@@ -2,7 +2,9 @@
 
 namespace Tests\Feature\User;
 
+use App\Models\ResetPasswordToken;
 use App\Models\User;
+use Database\Seeders\ResetPasswordTokenSeeder;
 use Database\Seeders\UserSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Foundation\Testing\WithFaker;
@@ -158,5 +160,28 @@ class UserTest extends TestCase
                     ]
                 ]
             ]);
+    }
+
+    public function testSendEmail()
+    {
+        $this->seed(UserSeeder::class);
+        $this->post('/api/user/reset-password', [
+            'email' => 'mahmudawaludin17@gmail.com'
+        ])->assertStatus(200);
+    }
+
+    public function testResetPassword()
+    {
+        $this->seed([UserSeeder::class, ResetPasswordTokenSeeder::class]);
+        $token = ResetPasswordToken::where('email', 'mahmudawaludin17@gmail.com')->first();
+        $old = User::where('email', 'mahmudawaludin17@gmail.com')->first();
+
+        $this->post('api/user/reset-password/' . $token->token, [
+            'password' => 'password baru',
+            'password_confirmation' => 'password baru'
+        ])->assertStatus(200);
+
+        $new = User::where('email', 'mahmudawaludin17@gmail.com')->first();
+        self::assertNotEquals($new->password, $old->password);
     }
 }

@@ -1,6 +1,8 @@
 <?php
 
+use App\Http\Controllers\Admin\AdminController;
 use App\Http\Controllers\User\UserController;
+use App\Http\Middleware\AdminMiddleware;
 use App\Http\Middleware\UserMiddleware;
 use App\Mail\SendMail;
 use Illuminate\Http\Request;
@@ -23,7 +25,14 @@ Route::post('/user/registrasi', [UserController::class, 'register']);
 Route::post('/user/reset-password', [UserController::class, 'reset_password']);
 Route::post('/user/reset-password/{token}', [UserController::class, 'reset_action'])->name('reset-action');
 
+Route::post('/admin/login', [AdminController::class, 'login']);
+
 Route::middleware(UserMiddleware::class)->prefix('user')->group(function () {
     Route::put('/update', [UserController::class, 'update']);
     Route::delete('/logout', [UserController::class, 'logout']);
+});
+
+Route::middleware(AdminMiddleware::class)->prefix('admin')->group(function () {
+    Route::put('/update', [AdminController::class, 'update']);
+    Route::delete('/logout', [AdminController::class, 'logout']);
 });

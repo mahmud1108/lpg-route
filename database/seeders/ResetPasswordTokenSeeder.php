@@ -16,7 +16,8 @@ class ResetPasswordTokenSeeder extends Seeder
     {
         ResetPasswordToken::create([
             'email' => 'mahmudawaludin17@gmail.com',
-            'token' => Hash::make('token')
+            'token' => Hash::make('token'),
+            'user_id' => 1
         ]);
     }
 }

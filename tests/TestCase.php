@@ -13,6 +13,7 @@ abstract class TestCase extends BaseTestCase
     {
         parent::setUp();
         DB::delete('delete from users');
+        DB::delete('delete from admins');
         DB::delete('delete from reset_password_tokens');
     }
 }

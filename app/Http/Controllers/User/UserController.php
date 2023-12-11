@@ -130,11 +130,13 @@ class UserController extends Controller
         if ($cek_email > 0) {
             $token = ResetPasswordToken::where('email', $request->email)->first();
             $token->token = $random;
+            $token->user_id = $user->user_id;
             $token->update();
         } else {
             $token = new ResetPasswordToken;
             $token->email = $user->email;
             $token->token = $random;
+            $token->user_id = $user->user_id;
             $token->save();
         }
 

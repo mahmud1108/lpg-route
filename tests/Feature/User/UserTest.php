@@ -52,7 +52,7 @@ class UserTest extends TestCase
 
     public function testUserRegisterSuccess()
     {
-        $this->post('/api/user/registrasi', [
+        $this->post('/api/user/register', [
             'name' => 'mahmud',
             'email' => 'mahmud@gmail.com',
             'password' => 'password',
@@ -72,7 +72,7 @@ class UserTest extends TestCase
     {
         $this->seed(UserSeeder::class);
 
-        $this->post('/api/user/registrasi', [
+        $this->post('/api/user/register', [
             'name' => 'mahmud',
             'email' => 'test@gmail.com',
             'password' => 'password',

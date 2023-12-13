@@ -16,10 +16,10 @@ class AdminResource extends JsonResource
     {
         return [
             'admin_id' => $this->admin_id,
-            'username' => $this->username,
+            'name' => $this->name,
             'email' => $this->email,
             'phone' => $this->phone,
-            'photo' => $this->photo
+            'photo' => $this->whenNotNull($this->photo)
         ];
     }
 }

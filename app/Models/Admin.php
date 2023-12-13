@@ -14,4 +14,9 @@ class Admin extends Authenticatable
     protected $primaryKey = 'admin_id';
 
     protected $guarded = 'admin_id';
+
+    public function location()
+    {
+        $this->hasMany(Location::class, 'admin_id', 'admin_id');
+    }
 }

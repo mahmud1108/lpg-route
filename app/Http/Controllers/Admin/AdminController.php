@@ -5,27 +5,47 @@ namespace App\Http\Controllers\Admin;
 use App\Helper\FileHelper;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\AdminLoginRequest;
+use App\Http\Requests\Admin\AdminRegisterRequest;
 use App\Http\Requests\Admin\AdminUpdateRequest;
+use App\Http\Requests\Admin\StoreLocationRequest;
 use App\Http\Resources\AdminResource;
+use App\Http\Resources\LocationResource;
 use App\Models\Admin;
+use App\Models\Location;
 use Illuminate\Http\Exceptions\HttpResponseException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
+use Nette\Utils\Random;
 
 class AdminController extends Controller
 {
+    public function register(AdminRegisterRequest $request)
+    {
+        $data = $request->validated();
+
+        $admin = new Admin;
+        $admin->admin_id = 'Adm_' . Random::generate(10, '0-9a-z');
+        $admin->name = $data['name'];
+        $admin->password = Hash::make($data['password']);
+        $admin->email = $data['email'];
+        $admin->phone = $data['phone'];
+        $admin->save();
+
+        return new AdminResource($admin);
+    }
+
     public function login(AdminLoginRequest $request)
     {
         $data = $request->validated();
 
-        $admin = Admin::where('username', $data['username'])->first();
+        $admin = Admin::where('email', $data['email'])->first();
 
         if (!$admin || !Hash::check($data['password'], $admin->password)) {
             throw new HttpResponseException(response([
                 'errors' => [
                     'message' => [
-                        'Username or Password wrong'
+                        'Email or Password wrong'
                     ]
                 ]
             ], 401));
@@ -42,8 +62,8 @@ class AdminController extends Controller
         $data = $request->validated();
         $admin = Admin::where('admin_id', auth()->user()->admin_id)->first();
 
-        if (isset($data['username'])) {
-            $admin->username = $data['username'];
+        if (isset($data['name'])) {
+            $admin->name = $data['name'];
         }
 
         if (isset($data['phone'])) {

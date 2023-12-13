@@ -6,9 +6,8 @@ use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Http\Exceptions\HttpResponseException;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Validation\Rule;
 
-class AdminUpdateRequest extends FormRequest
+class UpdateLocationRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
@@ -26,18 +25,20 @@ class AdminUpdateRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'name' => ['min:5'],
-            'password' => ['min:5'],
-            'email' => ['email', 'max:30', Rule::unique('admins', 'email')],
-            'phone' => ['max:20', Rule::unique('admins', 'phone')],
-            'photo' => ['mimes:jpg,jpeg,png', 'max:2048'],
+            'address' => ['min:1'],
+            'holiday' => ['min:1'],
+            'open_hours' => ['min:1'],
+            'inventory' => ['min:1', 'integer'],
+            'latitude' => ['min:1'],
+            'longitude' => ['min:1'],
+            'photo' => ['min:1', 'mimes:jpg,png,jpeg', 'max:2048'],
         ];
     }
 
     protected function failedValidation(Validator $validator)
     {
         throw new HttpResponseException(response([
-            'errors' =>  $validator->getMessageBag()
+            'errors' => $validator->getMessageBag()
         ], 400));
     }
 }

@@ -15,18 +15,50 @@ class AdminTest extends TestCase
      * A basic feature test example.
      */
 
+    public function testAdminRegisterSuccess()
+    {
+        $this->post('/api/admin/register', [
+            'name' => 'adminad',
+            'password' => 'admin',
+            'password_confirmation' => 'admin',
+            'email' => 'email@gmail.com',
+            'phone' => '123498345'
+        ])->assertStatus(201);
+
+        $cek = Admin::where('email', 'email@gmail.com')->get();
+        self::assertCount(1, $cek);
+    }
+
+    public function testRegisterFailed()
+    {
+        $this->post('/api/admin/register', [
+            'name' => 'adminad',
+            'password' => 'admin',
+            'password_confirmation' => 'ssss',
+            'email' => 'email@gmail.com',
+            'phone' => '123498345'
+        ])->assertStatus(400)
+            ->assertJson([
+                'errors' => [
+                    'password' => [
+                        'The password field confirmation does not match.'
+                    ]
+                ]
+            ]);
+    }
+
     public function testLoginSucess()
     {
         $this->seed(AdminSeeder::class);
 
         $this->post('/api/admin/login', [
-            'username' => 'admin',
+            'email' => 'admin@gmail.com',
             'password' => 'admin'
         ])->assertStatus(200)
             ->assertJson([
                 'data' => [
                     'admin_id' => 1,
-                    'username' => 'admin',
+                    'name' => 'admin',
                     'email' => 'admin@gmail.com',
                     'phone' => '112111',
                     'photo' => 'photo.jpg'
@@ -39,13 +71,13 @@ class AdminTest extends TestCase
         $this->seed(AdminSeeder::class);
 
         $this->post('/api/admin/login', [
-            'username' => 'admin',
+            'email' => 'admin@gmail.com',
             'password' => 'admin123'
         ])->assertStatus(401)
             ->assertJson([
                 'errors' => [
                     'message' => [
-                        'Username or Password wrong'
+                        'Email or Password wrong'
                     ]
                 ]
             ]);
@@ -57,7 +89,7 @@ class AdminTest extends TestCase
 
         $old = Admin::query()->limit(1)->first();
         $this->put('/api/admin/update', [
-            'username' => 'adammm',
+            'name' => 'adammm',
             'email' => 'emailbaru@gmail.com',
             'photo' => UploadedFile::fake()->create('asdf.jpg', 123),
         ], [
@@ -67,7 +99,7 @@ class AdminTest extends TestCase
         $new = Admin::query()->limit(1)->first();
 
         self::assertNotEquals($new->email, $old->email);
-        self::assertNotEquals($new->username, $old->username);
+        self::assertNotEquals($new->name, $old->name);
         self::assertNotEquals($new->photo, $old->photo);
     }
 
@@ -76,7 +108,7 @@ class AdminTest extends TestCase
         $this->seed(AdminSeeder::class);
 
         $this->put('/api/admin/update', [
-            'username' => 'ada',
+            'name' => 'ada',
             'email' => 'emailbaru',
             'photo' => UploadedFile::fake()->create('asdf.jpg', 123123),
         ], [
@@ -87,8 +119,8 @@ class AdminTest extends TestCase
                     'email' => [
                         'The email field must be a valid email address.'
                     ],
-                    'username' => [
-                        'The username field must be at least 5 characters.'
+                    'name' => [
+                        'The name field must be at least 5 characters.'
                     ],
                     'photo' => [
                         'The photo field must not be greater than 2048 kilobytes.'

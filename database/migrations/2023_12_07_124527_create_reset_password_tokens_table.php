@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::create('reset_password_tokens', function (Blueprint $table) {
             $table->id();
             $table->string('email')->unique();
-            $table->string('token')->unique();
+            $table->string('token')->unique()->nullable();
             $table->string('user_id');
             $table->foreign('user_id')->references('user_id')->on('users')->cascadeOnDelete()->cascadeOnUpdate();
             $table->timestamps();

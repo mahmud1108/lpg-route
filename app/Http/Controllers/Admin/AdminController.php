@@ -8,13 +8,19 @@ use App\Http\Requests\Admin\AdminLoginRequest;
 use App\Http\Requests\Admin\AdminRegisterRequest;
 use App\Http\Requests\Admin\AdminUpdateRequest;
 use App\Http\Requests\Admin\StoreLocationRequest;
+use App\Http\Requests\User\UserPasswordResetRequest;
 use App\Http\Resources\AdminResource;
 use App\Http\Resources\LocationResource;
+use App\Mail\AdminSendMailResetPassword;
+use App\Mail\SendMailResetPassword;
 use App\Models\Admin;
+use App\Models\AdminResetPasswordToken;
 use App\Models\Location;
+use App\Models\User;
 use Illuminate\Http\Exceptions\HttpResponseException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Str;
 use Nette\Utils\Random;
 
@@ -103,5 +109,76 @@ class AdminController extends Controller
         return response()->json([
             'data' => true
         ])->setStatusCode(200);
+    }
+
+    public function reset_password(Request $request)
+    {
+        $request->validate([
+            'email' => ['required', 'email']
+        ]);
+
+        $admin = Admin::where('email', $request->email)->first();
+
+        if (!$admin) {
+            throw new HttpResponseException(response([
+                'errors' => [
+                    'message' => [
+                        'Not found.'
+                    ]
+                ]
+            ], 404));
+        }
+
+        $cek_email = AdminResetPasswordToken::where('email', $request->email)->count();
+        $random = Random::generate(150, '0-9a-zA-Z');
+        if ($cek_email > 0) {
+            $token = AdminResetPasswordToken::where('email', $request->email)->first();
+            $token->token = $random;
+            $token->admin_id = $admin->admin_id;
+            $token->update();
+        } else {
+            $token = new AdminResetPasswordToken;
+            $token->email = $admin->email;
+            $token->token = $random;
+            $token->admin_id = $admin->admin_id;
+            $token->save();
+        }
+
+        $token = AdminResetPasswordToken::where('email', $admin->email)->first();
+
+        $email = new AdminSendMailResetPassword($admin, $token);
+        Mail::to($admin->email)->send($email);
+    }
+
+    public function reset_action($token, UserPasswordResetRequest $request)
+    {
+        $cek_token = AdminResetPasswordToken::where('token', $token)->first();
+        if (!$cek_token) {
+            throw new HttpResponseException(response([
+                'errors' => [
+                    'message' => [
+                        'Not found.'
+                    ]
+                ]
+            ], 404));
+        }
+
+        $admin = Admin::where('email', $cek_token->email)->first();
+        if (!$admin) {
+            throw new HttpResponseException(response([
+                'errors' => [
+                    'message' => [
+                        'Not found.'
+                    ]
+                ]
+            ], 404));
+        }
+
+        $data = $request->validated();
+
+        $admin->password = Hash::make($data['password']);
+        $admin->update();
+
+        return new AdminResource($admin);
     }
 }

@@ -19,4 +19,9 @@ class Admin extends Authenticatable
     {
         $this->hasMany(Location::class, 'admin_id', 'admin_id');
     }
+
+    public function admin_token()
+    {
+        $this->hasOne(AdminResetPasswordToken::class, 'admin_id', 'admin_id');
+    }
 }

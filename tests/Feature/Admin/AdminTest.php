@@ -3,6 +3,8 @@
 namespace Tests\Feature\Admin;
 
 use App\Models\Admin;
+use App\Models\AdminResetPasswordToken;
+use Database\Seeders\AdminResetPasswordTokenSeeder;
 use Database\Seeders\AdminSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Foundation\Testing\WithFaker;
@@ -136,5 +138,29 @@ class AdminTest extends TestCase
         $this->delete('/api/admin/logout', headers: [
             'Authorization' => 'admin'
         ])->assertStatus(200);
+    }
+
+    public function testForgetPasswordForm()
+    {
+        $this->seed(AdminSeeder::class);
+
+        $this->post('/api/admin/reset-password', [
+            'email' => 'mahmudawaludin17@gmail.com'
+        ])->assertStatus(200);
+    }
+
+    public function testResetPassword()
+    {
+        $this->seed([AdminSeeder::class, AdminResetPasswordTokenSeeder::class]);
+        $token = AdminResetPasswordToken::where('email', 'mahmudawaludin17@gmail.com')->first();
+        $old = Admin::where('email', 'mahmudawaludin17@gmail.com')->first();
+
+        $this->post('api/admin/reset-password/' . $token->token, [
+            'password' => 'password baru',
+            'password_confirmation' => 'password baru'
+        ])->assertStatus(200);
+
+        $new = Admin::where('email', 'mahmudawaludin17@gmail.com')->first();
+        self::assertNotEquals($new->password, $old->password);
     }
 }

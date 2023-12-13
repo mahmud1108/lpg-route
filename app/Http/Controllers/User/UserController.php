@@ -126,7 +126,7 @@ class UserController extends Controller
         }
 
         $cek_email = ResetPasswordToken::where('email', $request->email)->count();
-        $random = Hash::make(Random::generate(10, '0-9a-z'));
+        $random = Random::generate(150, '0-9a-zA-Z-');
         if ($cek_email > 0) {
             $token = ResetPasswordToken::where('email', $request->email)->first();
             $token->token = $random;

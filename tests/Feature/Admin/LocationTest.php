@@ -2,7 +2,6 @@
 
 namespace Tests\Feature\Admin;
 
-use App\Models\Admin;
 use App\Models\Location;
 use Database\Seeders\AdminSeeder;
 use Database\Seeders\LocationSeeder;

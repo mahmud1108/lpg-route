@@ -23,5 +23,15 @@ class AdminSeeder extends Seeder
             'photo' => 'photo.jpg',
             'token' => 'admin'
         ]);
+
+        Admin::create([
+            'admin_id' => 22,
+            'name' => 'admindd',
+            'email' => 'mahmudawaludin17@gmail.com',
+            'password' => Hash::make('admin'),
+            'phone' => '11211111',
+            'photo' => 'photo.jpg',
+            'token' => 'admin1'
+        ]);
     }
 }

@@ -28,6 +28,8 @@ Route::post('/user/reset-password/{token}', [UserController::class, 'reset_actio
 
 Route::post('/admin/login', [AdminController::class, 'login']);
 Route::post('/admin/register', [AdminController::class, 'register']);
+Route::post('/admin/reset-password', [AdminController::class, 'reset_password']);
+Route::post('/admin/reset-password/{token}', [AdminController::class, 'reset_action'])->name('admin-reset-action');
 
 Route::middleware(UserMiddleware::class)->prefix('user')->group(function () {
     Route::put('/update', [UserController::class, 'update']);

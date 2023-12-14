@@ -4,6 +4,8 @@ namespace Tests\Feature\User;
 
 use App\Models\ResetPasswordToken;
 use App\Models\User;
+use Database\Seeders\AdminSeeder;
+use Database\Seeders\LocationSeeder;
 use Database\Seeders\ResetPasswordTokenSeeder;
 use Database\Seeders\UserSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -183,5 +185,17 @@ class UserTest extends TestCase
 
         $new = User::where('email', 'mahmudawaludin17@gmail.com')->first();
         self::assertNotEquals($new->password, $old->password);
+    }
+
+    public function testSearchSuccess()
+    {
+        $this->seed([AdminSeeder::class, LocationSeeder::class, UserSeeder::class]);
+
+        $result = $this->get('/api/user/search/a', [
+            'Authorization' => 'user'
+        ])->assertStatus(200)->json();
+
+        self::assertEquals(1, count($result['data']));
+        self::assertEquals(1, $result['meta']['total']);
     }
 }

@@ -5,9 +5,6 @@ use App\Http\Controllers\Admin\LocationController;
 use App\Http\Controllers\User\UserController;
 use App\Http\Middleware\AdminMiddleware;
 use App\Http\Middleware\UserMiddleware;
-use App\Mail\SendMail;
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -34,6 +31,8 @@ Route::post('/admin/reset-password/{token}', [AdminController::class, 'reset_act
 Route::middleware(UserMiddleware::class)->prefix('user')->group(function () {
     Route::put('/update', [UserController::class, 'update']);
     Route::delete('/logout', [UserController::class, 'logout']);
+
+    Route::get('/search/{address}', [UserController::class, 'search']);
 });
 
 Route::middleware(AdminMiddleware::class)->prefix('admin')->group(function () {

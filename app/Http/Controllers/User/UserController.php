@@ -8,10 +8,13 @@ use App\Http\Requests\User\UserPasswordResetRequest;
 use App\Http\Requests\User\UserRegisterRequest;
 use App\Http\Requests\User\UserRequest;
 use App\Http\Requests\User\UserUpdateRequest;
+use App\Http\Resources\LocationResource;
 use App\Http\Resources\UserResource;
 use App\Mail\SendMailResetPassword;
+use App\Models\Location;
 use App\Models\ResetPasswordToken;
 use App\Models\User;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Exceptions\HttpResponseException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
@@ -176,5 +179,17 @@ class UserController extends Controller
         $user->update();
 
         return new UserResource($user);
+    }
+
+    public function search($address, Request $request)
+    {
+        $per_page = $request->input('per_page', 10);
+        $page = $request->input('page', 1);
+
+        $location = Location::query()
+            ->where('address', 'like', '%' . $address . '%')
+            ->paginate(perPage: $per_page, page: $page);
+
+        return LocationResource::collection($location);
     }
 }

@@ -26,6 +26,13 @@ use Nette\Utils\Random;
 
 class AdminController extends Controller
 {
+    public function current_admin()
+    {
+        $admin = Admin::where('admin_id', auth()->user()->admin_id)->first();
+
+        return new AdminResource($admin);
+    }
+
     public function register(AdminRegisterRequest $request)
     {
         $data = $request->validated();

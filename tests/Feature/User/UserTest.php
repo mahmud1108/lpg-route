@@ -198,4 +198,24 @@ class UserTest extends TestCase
         self::assertEquals(1, count($result['data']));
         self::assertEquals(1, $result['meta']['total']);
     }
+
+    public function testGetCurrentUser()
+    {
+        $this->seed(UserSeeder::class);
+
+        $this->get('/api/user/current', [
+            'Authorization' => 'user'
+        ])->assertStatus(200)
+            ->assertJson([
+                'data' => [
+                    "user_id" => "1",
+                    "name" => "test",
+                    "email" => "test@gmail.com",
+                    "phone" => "333333",
+                    "photo" => "test",
+                    "bio" => "test",
+                    "token" => "user"
+                ]
+            ]);
+    }
 }

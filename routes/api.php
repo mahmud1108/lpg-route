@@ -31,13 +31,16 @@ Route::post('/admin/reset-password/{token}', [AdminController::class, 'reset_act
 Route::middleware(UserMiddleware::class)->prefix('user')->group(function () {
     Route::put('/update', [UserController::class, 'update']);
     Route::delete('/logout', [UserController::class, 'logout']);
+    Route::get('/current', [UserController::class, 'current_user']);
 
     Route::get('/search/{address}', [UserController::class, 'search']);
+    Route::get('/location', [UserController::class, 'get_all']);
 });
 
 Route::middleware(AdminMiddleware::class)->prefix('admin')->group(function () {
     Route::put('/update', [AdminController::class, 'update']);
     Route::delete('/logout', [AdminController::class, 'logout']);
+    Route::get('/current', [AdminController::class, 'current_admin']);
 
     Route::post('/location', [LocationController::class, 'add_location']);
     Route::put('/location/{location_id}', [LocationController::class, 'update']);

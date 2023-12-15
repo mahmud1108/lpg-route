@@ -25,6 +25,13 @@ use Nette\Utils\Random;
 
 class UserController extends Controller
 {
+    public function current_user()
+    {
+        $user = User::where('user_id', auth()->user()->user_id)->first();
+
+        return new UserResource($user);
+    }
+
     public function login(UserRequest $request)
     {
         $data = $request->validated();
@@ -189,6 +196,16 @@ class UserController extends Controller
         $location = Location::query()
             ->where('address', 'like', '%' . $address . '%')
             ->paginate(perPage: $per_page, page: $page);
+
+        return LocationResource::collection($location);
+    }
+
+    public function get_all(Request $request)
+    {
+        $per_page = $request->input('per_page', 10);
+        $page = $request->input('page', 1);
+
+        $location =  Location::paginate(perPage: $per_page, page: $page);
 
         return LocationResource::collection($location);
     }

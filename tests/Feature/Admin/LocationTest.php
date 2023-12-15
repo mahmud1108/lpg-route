@@ -6,6 +6,7 @@ use App\Models\Location;
 use Database\Seeders\AdminSeeder;
 use Database\Seeders\LocationSeeder;
 use Database\Seeders\ManyLocationSeeder;
+use Database\Seeders\UserSeeder;
 use Illuminate\Http\UploadedFile;
 use Tests\TestCase;
 
@@ -187,5 +188,17 @@ class LocationTest extends TestCase
                     ]
                 ]
             ]);
+    }
+
+    public function testGetAllLocation()
+    {
+        $this->seed([AdminSeeder::class, ManyLocationSeeder::class, UserSeeder::class]);
+
+        $result =  $this->get('api/user/location', [
+            'Authorization' => 'user'
+        ])->assertStatus(200)->json();
+
+        self::assertEquals(10, count($result['data']));
+        self::assertEquals(20, $result['meta']['total']);
     }
 }

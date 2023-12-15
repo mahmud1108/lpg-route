@@ -163,4 +163,22 @@ class AdminTest extends TestCase
         $new = Admin::where('email', 'mahmudawaludin17@gmail.com')->first();
         self::assertNotEquals($new->password, $old->password);
     }
+
+    public function testGetCurrentAdmin()
+    {
+        $this->seed(AdminSeeder::class);
+
+        $this->get('/api/admin/current', [
+            'Authorization' => 'admin'
+        ])->assertStatus(200)
+            ->assertJson([
+                'data' => [
+                    "admin_id" => "1",
+                    "name" => "admin",
+                    "email" => "admin@gmail.com",
+                    "phone" => "112111",
+                    "photo" => "photo.jpg"
+                ]
+            ]);
+    }
 }

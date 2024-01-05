@@ -4,11 +4,11 @@ namespace App\Http\Controllers\Admin;
 
 use App\Helper\FileHelper;
 use App\Http\Controllers\Controller;
+use App\Http\Controllers\GetData;
 use App\Http\Requests\Admin\StoreLocationRequest;
 use App\Http\Requests\Admin\UpdateLocationRequest;
 use App\Http\Resources\LocationResource;
 use App\Models\Location;
-use Illuminate\Http\Exceptions\HttpResponseException;
 use Illuminate\Http\Request;
 use Nette\Utils\Random;
 
@@ -37,18 +37,8 @@ class LocationController extends Controller
     {
         $data = $request->validated();
 
-        $location = Location::where('location_id', $location_id)
-            ->where('admin_id', auth()->user()->admin_id)->first();
-
-        if (!$location) {
-            throw new HttpResponseException(response([
-                'errors' => [
-                    'message' => [
-                        'Not found.'
-                    ]
-                ]
-            ], 404));
-        }
+        $location = GetData::data_check(Location::where('location_id', $location_id)
+            ->where('admin_id', auth()->user()->admin_id)->first());
 
         if (isset($data['address'])) {
             $location->address = $data['address'];
@@ -95,35 +85,15 @@ class LocationController extends Controller
 
     public function get_one($location_id)
     {
-        $location = Location::find($location_id);
-
-        if (!$location) {
-            throw new HttpResponseException(response([
-                'errors' => [
-                    'message' => [
-                        'Not found.'
-                    ]
-                ]
-            ], 404));
-        }
+        $location = GetData::data_check(Location::find($location_id));
 
         return new LocationResource($location);
     }
 
     public function delete($location_id)
     {
-        $location = Location::where('location_id', $location_id)
-            ->where('admin_id', auth()->user()->admin_id)->first();
-
-        if (!$location) {
-            throw new HttpResponseException(response([
-                'errors' => [
-                    'message' => [
-                        'Not found.'
-                    ]
-                ]
-            ], 404));
-        }
+        $location = GetData::data_check(Location::where('location_id', $location_id)
+            ->where('admin_id', auth()->user()->admin_id)->first());
 
         $location->delete();
 

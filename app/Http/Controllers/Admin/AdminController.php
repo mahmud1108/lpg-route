@@ -4,20 +4,15 @@ namespace App\Http\Controllers\Admin;
 
 use App\Helper\FileHelper;
 use App\Http\Controllers\Controller;
+use App\Http\Controllers\GetData;
 use App\Http\Requests\Admin\AdminLoginRequest;
 use App\Http\Requests\Admin\AdminRegisterRequest;
 use App\Http\Requests\Admin\AdminUpdateRequest;
-use App\Http\Requests\Admin\StoreLocationRequest;
 use App\Http\Requests\User\UserPasswordResetRequest;
 use App\Http\Resources\AdminResource;
-use App\Http\Resources\LocationResource;
 use App\Mail\AdminSendMailResetPassword;
-use App\Mail\SendMailResetPassword;
 use App\Models\Admin;
 use App\Models\AdminResetPasswordToken;
-use App\Models\Location;
-use App\Models\User;
-use Illuminate\Http\Exceptions\HttpResponseException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
@@ -52,17 +47,7 @@ class AdminController extends Controller
     {
         $data = $request->validated();
 
-        $admin = Admin::where('email', $data['email'])->first();
-
-        if (!$admin || !Hash::check($data['password'], $admin->password)) {
-            throw new HttpResponseException(response([
-                'errors' => [
-                    'message' => [
-                        'Email or Password wrong'
-                    ]
-                ]
-            ], 401));
-        }
+        $admin = GetData::login_validation(Admin::where('email', $data['email'])->first(), $data['password']);
 
         $admin->token = Str::uuid()->toString();
         $admin->update();
@@ -73,7 +58,7 @@ class AdminController extends Controller
     public function update(AdminUpdateRequest $request)
     {
         $data = $request->validated();
-        $admin = Admin::where('admin_id', auth()->user()->admin_id)->first();
+        $admin = GetData::data_check(Admin::where('admin_id', auth()->user()->admin_id)->first());
 
         if (isset($data['name'])) {
             $admin->name = $data['name'];
@@ -93,10 +78,10 @@ class AdminController extends Controller
 
         if (isset($data['photo'])) {
             if ($admin->photo) {
-                FileHelper::instance()->delete($admin->photo);
-                $photo = FileHelper::instance()->upload($data['photo'], 'admin');
+                Filehelper::instance()->delete($admin->photo);
+                $photo = Filehelper::instance()->upload($data['photo'], 'admin');
             } else {
-                $photo = FileHelper::instance()->upload($data['photo'], 'admin');
+                $photo = Filehelper::instance()->upload($data['photo'], 'admin');
             }
             $admin->photo = $photo;
         }
@@ -124,17 +109,7 @@ class AdminController extends Controller
             'email' => ['required', 'email']
         ]);
 
-        $admin = Admin::where('email', $request->email)->first();
-
-        if (!$admin) {
-            throw new HttpResponseException(response([
-                'errors' => [
-                    'message' => [
-                        'Not found.'
-                    ]
-                ]
-            ], 404));
-        }
+        $admin = GetData::data_check(Admin::where('email', $request->email)->first());
 
         $cek_email = AdminResetPasswordToken::where('email', $request->email)->count();
         $random = Random::generate(150, '0-9a-zA-Z');
@@ -159,27 +134,9 @@ class AdminController extends Controller
 
     public function reset_action($token, UserPasswordResetRequest $request)
     {
-        $cek_token = AdminResetPasswordToken::where('token', $token)->first();
-        if (!$cek_token) {
-            throw new HttpResponseException(response([
-                'errors' => [
-                    'message' => [
-                        'Not found.'
-                    ]
-                ]
-            ], 404));
-        }
+        $cek_token = GetData::data_check(AdminResetPasswordToken::where('token', $token)->first());
 
-        $admin = Admin::where('email', $cek_token->email)->first();
-        if (!$admin) {
-            throw new HttpResponseException(response([
-                'errors' => [
-                    'message' => [
-                        'Not found.'
-                    ]
-                ]
-            ], 404));
-        }
+        $admin = GetData::data_check(Admin::where('email', $cek_token->email)->first());
 
         $data = $request->validated();
 

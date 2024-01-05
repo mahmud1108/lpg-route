@@ -46,7 +46,7 @@ class UserTest extends TestCase
             ->assertJson([
                 'errors' => [
                     'message' => [
-                        'email or password wrong'
+                        'Email or Password wrong'
                     ]
                 ]
             ]);

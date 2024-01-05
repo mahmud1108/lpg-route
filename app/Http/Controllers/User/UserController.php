@@ -4,6 +4,7 @@ namespace App\Http\Controllers\User;
 
 use App\Helper\FileHelper;
 use App\Http\Controllers\Controller;
+use App\Http\Controllers\GetData;
 use App\Http\Requests\User\UserPasswordResetRequest;
 use App\Http\Requests\User\UserRegisterRequest;
 use App\Http\Requests\User\UserRequest;
@@ -14,13 +15,11 @@ use App\Mail\SendMailResetPassword;
 use App\Models\Location;
 use App\Models\ResetPasswordToken;
 use App\Models\User;
-use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Exceptions\HttpResponseException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Str;
-use League\CommonMark\Extension\CommonMark\Parser\Block\HtmlBlockStartParser;
 use Nette\Utils\Random;
 
 class UserController extends Controller
@@ -35,17 +34,7 @@ class UserController extends Controller
     public function login(UserRequest $request)
     {
         $data = $request->validated();
-        $user = User::where('email', $data['email'])->first();
-
-        if (!$user || !Hash::check($data['password'], $user->password)) {
-            throw new HttpResponseException(response([
-                'errors' => [
-                    'message' => [
-                        'email or password wrong'
-                    ]
-                ]
-            ], 401));
-        }
+        $user = GetData::login_validation(User::where('email', $data['email'])->first(), $data['password']);
 
         $user->token = Str::uuid()->toString();
         $user->save();
@@ -124,16 +113,7 @@ class UserController extends Controller
             'email' => ['required', 'email']
         ]);
 
-        $user = User::where('email', $request->email)->first();
-        if (!$user) {
-            throw new HttpResponseException(response([
-                'errors' => [
-                    'message' => [
-                        'Not found.'
-                    ]
-                ]
-            ], 404));
-        }
+        $user = GetData::data_check(User::where('email', $request->email)->first());
 
         $cek_email = ResetPasswordToken::where('email', $request->email)->count();
         $random = Random::generate(150, '0-9a-zA-Z-');
@@ -158,27 +138,9 @@ class UserController extends Controller
 
     public function reset_action($token, UserPasswordResetRequest $request)
     {
-        $cek_token = ResetPasswordToken::where('token', $token)->first();
-        if (!$cek_token) {
-            throw new HttpResponseException(response([
-                'errors' => [
-                    'message' => [
-                        'Not found.'
-                    ]
-                ]
-            ], 404));
-        }
+        $cek_token = GetData::data_check(ResetPasswordToken::where('token', $token)->first());
 
-        $user = User::where('email', $cek_token->email)->first();
-        if (!$user) {
-            throw new HttpResponseException(response([
-                'errors' => [
-                    'message' => [
-                        'Not found.'
-                    ]
-                ]
-            ], 404));
-        }
+        $user = GetData::data_check(User::where('email', $cek_token->email)->first());
 
         $data = $request->validated();
 
